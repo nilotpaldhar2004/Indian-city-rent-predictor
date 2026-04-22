@@ -1,3 +1,12 @@
+---
+title: Indian Metro Rent Predictor
+emoji: 🏠
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_file: app.py
+pinned: false
+---
 # 🏠 RentIQ: Metro City Rent Predictor
 
 <div align="center">

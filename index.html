@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* ── Tokens ───────────────────────────────────────────────── */
+
     :root {
       --cream:       #faf8f3;
       --cream-2:     #f2ede3;
@@ -40,7 +40,6 @@
       --transition:  200ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* ── Reset ────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
@@ -51,7 +50,6 @@
       overflow-x: hidden;
     }
 
-    /* ── Hero ─────────────────────────────────────────────────── */
     .hero {
       position: relative;
       background: var(--indigo);
@@ -115,7 +113,6 @@
     }
     .hero-badge.gold { border-color: var(--gold-border); color: var(--gold); background: var(--gold-dim); }
 
-    /* ── City Strip ───────────────────────────────────────────── */
     .city-strip {
       display: flex;
       overflow-x: auto;
@@ -142,7 +139,6 @@
     .city-card.active { color: var(--gold); border-bottom-color: var(--gold); }
     .city-icon { margin-right: 6px; }
 
-    /* ── Main Grid ────────────────────────────────────────────── */
     .main {
       max-width: 1100px;
       margin: 0 auto;
@@ -153,7 +149,6 @@
       align-items: start;
     }
 
-    /* ── Form Card ────────────────────────────────────────────── */
     .form-card {
       background: var(--white);
       border: 1px solid var(--cream-3);
@@ -186,7 +181,6 @@
       border-radius: 99px;
     }
     .form-body { padding: 24px 28px 28px; display: flex; flex-direction: column; gap: 0; }
-
     /* Form sections */
     .form-section { margin-bottom: 22px; }
     .section-label {
@@ -203,7 +197,6 @@
     .form-row.one   { grid-template-columns: 1fr; }
     .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
     .form-row + .form-row { margin-top: 12px; }
-
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field label {
       font-size: 11px;
@@ -235,7 +228,6 @@
     }
     .field input:hover,
     .field select:hover { border-color: var(--ink-3); }
-
     .select-wrap { position: relative; }
     .select-wrap::after {
       content: '▾';
@@ -247,7 +239,6 @@
       font-size: 12px;
     }
     .select-wrap select { padding-right: 32px; cursor: pointer; }
-
     /* Predict button */
     .predict-btn {
       width: 100%;
@@ -280,10 +271,8 @@
     .btn-inner { display: flex; align-items: center; justify-content: center; gap: 10px; }
     .btn-arrow { font-style: normal; font-size: 18px; transition: transform var(--transition); }
     .predict-btn:not(:disabled):hover .btn-arrow { transform: translateX(4px); }
-
     /* ── Right Column ─────────────────────────────────────────── */
     .right-col { display: flex; flex-direction: column; gap: 20px; }
-
     /* Result card */
     .result-card {
       background: var(--white);
@@ -331,7 +320,6 @@
       align-items: center;
       justify-content: center;
     }
-
     /* Idle */
     .result-idle { display: flex; flex-direction: column; align-items: center; gap: 12px; }
     .idle-icon {
@@ -347,7 +335,6 @@
       font-weight: 300;
       line-height: 1.7;
     }
-
     /* Rent result */
     .rent-display { display: none; width: 100%; }
     .rent-label {
@@ -399,7 +386,6 @@
       color: var(--gold);
       border: 1px solid var(--gold-border);
     }
-
     /* Error */
     .rent-error {
       display: none;
@@ -412,7 +398,6 @@
       line-height: 1.6;
       width: 100%;
     }
-
     /* ── Insight Card ─────────────────────────────────────────── */
     .insight-card {
       background: var(--white);
@@ -446,7 +431,6 @@
       border-radius: 99px;
     }
     .insight-body { padding: 18px 22px 20px; }
-
     .factor-list { display: flex; flex-direction: column; gap: 11px; }
     .factor-item { display: flex; align-items: center; gap: 10px; }
     .factor-name {
@@ -481,7 +465,6 @@
       text-align: right;
       flex-shrink: 0;
     }
-
     /* ── Chart Card ───────────────────────────────────────────── */
     .chart-card {
       background: var(--white);
@@ -509,7 +492,6 @@
     }
     .chart-sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
     .chart-body { padding: 20px 24px 24px; }
-
     /* ── Footer ───────────────────────────────────────────────── */
     .footer {
       text-align: center;
@@ -530,7 +512,6 @@
       color: var(--ink-3);
       border: 1px solid var(--cream-3);
     }
-
     /* ── Animations ───────────────────────────────────────────── */
     @keyframes fade-up {
       from { opacity: 0; transform: translateY(18px); }
@@ -538,7 +519,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinning { display: inline-block; animation: spin 0.9s linear infinite; }
-
     /* ── Responsive ───────────────────────────────────────────── */
     @media (max-width: 900px) {
       .main { grid-template-columns: 1fr; gap: 20px; padding: 24px 16px 48px; }
@@ -749,12 +729,13 @@
   </div>
 </footer>
 
+<div align="center" style="margin-bottom: 20px;">
+  <sub>Built with FastAPI & XGBoost · Deployed via Docker on Hugging Face Spaces</sub>
+</div>
+
 <script>
   // ── Config ────────────────────────────────────────────────────
-  // Deployed Flask backend on Render.
-  // For local dev, swap this to 'http://127.0.0.1:5000' 'https://indian-city-rent-predictor.onrender.com'
-  const API_BASE = 'https://indian-city-rent-predictor.onrender.com';
-
+  const API_BASE = window.location.origin;
   // ── City locality database (full dataset) ─────────────────────
   const cityDB = {
     Bangalore: ["Talagatta Pura","Nagappa Reddy layout-Dooravani Nagar","Kattigenahalli, Bellary Road","C V Raman Nagar","Chikkalasandra, Bangalore","Talaghattapura","Malleshwaram","Ramaiah Layout, Kacharakanahalli","Rajajinagar","Padmanabha Nagar","Kengeri Main Road","Ramamurthy Nagar","Thanisandra","J P Nagar","Bannerghatta Main Road","Vinayakanagar, Hebbal","venkatapuram","Vv Nagar, Bikasipura","Kacharakanahalli","Tumkur Road","Babusahib Palya","Kumaraswamy Layout, Kumaraswamy Layout","Nri Layout","Balaji Layout -Hongasandra, Hongasandra","Vijaya Bank Layout","Jaya Nagar Block 1, Jayanagar","Maruthi Sevanagar","Nelamangala","Yelahanka New Town","Hongasandra","Girinagar","T Dasarahalli","Jogupalya","Balaji Gardens Layout, Gottigere","in Bannerghatta Road","Electronic City Phase 2, Electronic City","Hebbal","Jalahalli East","Garebhavipalya, Hongasandra, Hosur Road","Btm Layout Stage 4","Konanakunte","Basaveshwar Nagar","Jp Nagar Phase 7, J P Nagar","Koramangala Block 4","Aecs Layout-Singasandra, Singasandra, Hosur Road","Mahadevapura","Banaswadi","Kalasipalyam, Kalasipalyam","Tilak Nagar, Jayanagar, bannerghatta main Road","K R Puram","Electronic City","Sarjapur Road","whitefield","Nagondanahalli","Isro Layout, Kumaraswamy Layout","Banashankari","JAR Shikara","Medahalli","Byatarayanapura","Udayanagar Extension, Mahadevapura","Dwarka Nagar, Kattigenahalli","Btm Layout","Jeevan Bima Nagar, Airport Road","Jaya Nagar Block 7, Jayanagar","Chamrajpet","Hosa Road, off Hosur Road","Electronics City Phase 1, Electronic City","Subramanyapura","Kempapura Agrahara","Vijayanagar","Munnekollal","Sarakki Nagar, J P Nagar","Ananda Puram, Jeevan Bima Nagar","Hrbr Layout, Kalyan Nagar, Outer Ring Road","Horamavu kelkkeri road","Vishweshwaraiah Layout, Annapurneshwari Nagar","Babusapalya","Hutchins Road","Jp Nagar Phase 1, J P Nagar","Rbi Layout, J P Nagar","Hbr Layout Block 4, HBR Layout","Frazer Town","Chikkalasandra","Abbigere","Chikkabanavara","Meenakshi Layout, Kengeri","Mahatma Gandhi Road","Bilekahalli","Madanayakahalli","Sivanchetti Gardens","Nagavara","Horamavu","Magadi Road","Bagalakunte","Murugeshpalya, Airport Road","Gottigere","Jalahalli, Jalahalli, Outer Ring Road","Dooravani Nagar, Dooravani Nagar","Hommadevanahalli","Ms Palya, Vidyaranyapura","Mathikere","Btm Layout Stage 2, BTM Layout","Sanjeevini Nagar, Hegganahalli","Prakruthi Township, Hennur","M C Layout, Vijayanagar, Magadi Road","Dr.Shivaram Karanth Nagar, Jakkuru","Rayasandra","Lakkasandra, Wilson Garden, bannerghatta main road","Mysore Road","Kengeri","B.Narayanapura","Ananth Nagar","Basavanagudi","Old Airport Road","Hegganahalli","Hrbr Layout Block 2, Kalyan Nagar, Outer Ring Road","Vishwapriya Nagar, Begur","Kanakapura Road","Kamala Nagar","Kachohalli","Bommanahalli","Rmv Extension Stage 2","Nagarbhavi","Marathahalli","Kodigehalli","Rukmini Nagar","Vibhutipura","Mallasandra, Jalahalli West","Hebbal Kempapura","Jp Nagar Phase 5, J P Nagar, Outer Ring Road","Kannur","Bhattarahalli","Raghuvanahalli-Bcmc Layout","Chandapura","Hoysala Nagar","Vasanth Nagar","Nagarabhavi","Indira Nagar","Kodi Halli","Jagadish Nagar, Kaggadasapura","Kadugodi","Yeshwantpur","Vidyaranyapura","Bommasandra","Bangalore","Malleshpalya, Kaggadasapura","Jaya Nagar Block 3","Arakere Mico Layout, Arakere","Seshadripuram","Ullal Upnagar","Guttahalli","Koramangala","Jp Nagar Phase 6, J P Nagar, Outer Ring Road","Basava Nagar","Kaggadasapura, Indira nagar","Banashankari Stage 3, Banashankari","Yelachenahalli, Kumaraswamy Layout, Kanakapura Road","Lavelle Road","Hesaraghatta Main Road","Konappana Agrahara, Electronic City","Dinnur, Hebbal","Chikkasandra-Jalahalli West, Jalahalli West","Doddanekundi, Kartik Nagar","Jp Nagar Phase 2, J P Nagar","Attibele","Devinagar, Outer Ring Road","Fci Layout, Deepanjali Nagar","Ombr Layout, Banaswadi","Sinthan Nagar, Thanisandra","Kengeri Hobli","Kodichikkanahalli Main Road","Mangammanapalya, Hosur Road","Uttarahalli","Immadihalli, Whitefield","Yelahanka","Jaya Nagar Block 5, Jayanagar","Varthur","Peenya Industrial Area, Tumkur Road","Nandini Layout","Chamundi Nagar, Rajajinagar","Ilyas Nagar, Kumaraswamy Layout","Nobo Nagar, Kalena Agrahara","Byrathi","Doddanagamangala","Hoodi Circle, Hoodi","Kammanahalli","Yelechenahalli","Jayanagar","Kengeri Satellite Town","Akshayanagar","HMT Layout Nagasandra","Begur Road","Nimbekaipura","Kr Garden-Murugeshpalya, Murugeshpalya, Airport Road","Srinagar, Banashankari","Nagarabhavi BDA complex","Manayata Tech Park","Bhel Township- Malleshwaram, Malleshwaram","Coffee Board Layout, Nagavara","Rampura","Mallathahalli, Outer Ring Road","Hosakerehalli","Anantapura","Richmond Town, Richmond Town","Jyothi Nagar, Dooravani Nagar","Bikasipura, kanakapura Road","Kudlu","Horamavu Agara, Hormavu","Hmt Layout Block 4, Vidyaranyapura","Hennur Main Road","Kothanur","Visthar","Syndicate Bank Colony, Arakere","Bhuvaneswari Nagar","Ews Colony, BTM Layout","Peenya 2nd Stage","Banashankari Stage 2, Banashankari","Kogilu","Bhel Layout, Rajarajeshwari Nagar","Bohra Layout, Gottigere, bannerghatta main Road","Kodigenahalli","Begur","Battarahalli","Budigere Cross","Dollars Colony-Rmv Extension Stage 2, RMV Extension Stage 2","Itpl, Whitefield","Hsr Layout Sector 6, HSR Layout","Hosa Road Junction","East Of Ngef Layout, Bennigana Halli","Parappana Agrahara","Ags Layout, Hebbal","Doddabanahalli","Shivananda Nagar, Vijayanagar","Jaya Nagar Block 8, Jayanagar","Hulimavu","Dodda Nekkundi Extension, Kartik Nagar, Outer Ring Road","Kasturi Nagar","Langford Gardens","Maruthi Extesnion, Rajajinagar","Shampura, Kaval Byrasandra","Choodasandra","Arakere","New Thippasandra","A Narayanapura, Mahadevapura","New Bel Road","Gunjur","Sahakara Nagar","Adugodi","Banjara Layout","Vijay Enclave","Ejipura","Hal Layout, Hosur Road","Panduranga Nagar, bannerghatta main Road","CV Raman Nagar","Hoodi, Hoodi","Channasandra","Ulsoor Road","Basavanapura","Aditya Nagar-Vidyaranyapura, Vidyaranyapura","Koramangala Block 1","Amrutahalli","ITI Layout","Thambuchetty Palya","Pai Layout-Hulimavu, Hulimavu","Outer Ring Road","Garvebhavi Palya","Halasuru","Mylasandra","Rajarajeshwari Nagar","Laggere","Hsr Layout Sector 3, HSR Layout","Seetharampalya, Hoodi","Manyata Residency, Thanisandra","Vijaya Bank Colony -Bilekahalli, Bilekahalli","Nallurhalli, Whitefield, Borewell Road","Maruthi Nagar-Yelahanka, Yelahanka","Chuchangatta Colony, J P Nagar","Ashok Nagar","Hsr Layout","Sanjay Nagar Stage 2","Ramachandrapuram Rajajinagar","Kalyan Nagar","Haralur Road","Hsr Layout Sector 2, HSR Layout","Annapurneshwari Nagar","Ragavendra Nagar","Attiguppe","Kalkere","Yemalur","Benson Town","Cox Town","Chinnapanna Halli","Neelasandra","Ramagondanahalli","Lakshmipura","Kudlu Gate","Basaveshvara Nagar","Rmv Extension, Armane Nagar","Ittamadu, Banashankari, Outer Ring Road","Kengeri Upanagara","Jayanti Nagar, Hormavu","Tannery Road","Whitefield","Sir M V Nagar","Shanti Nagar","Shivaji Nagar","RT Nagar","Sunkadakatte","Attur Layout, Yelahanka New Town","Chelekare, Kalyan Nagar, Outer Ring Road","Venkatpura, HSR Layout","Devarachikannahalli, Begur Road","Hbr Layout Block 2, HBR Layout","Raghavendra Layout","Doddaballapur Road","Hbr Layout","Lingarajapuram, Lingarajapuram, Hennur Main Road","HRBR Layout Block 1","Maruthi Nagar-Kaggadasapura, Kaggadasapura","Kammagondahalli, Jalahalli","Dhobi Ghat- Rajajinagar","Singasandra, Hosur Road","Marathahalli-Sarjapur Outer Ring Road","Koramangala 8Th Block","Agrahara Layout","Sadashiva Nagar","Krishna Reddy Layout -Domlur","Jakkur Plantation, Jakkuru, Bellary Road","Laxminarayana Layout, Munnekollal","Jnana Ganga Nagar","Bagalur","Airport Road","Mavalli","Hormavu Ring Road","Hosur Road","Ullal Main Road","Chowdeshwari Layout, Yelahanka","Koramangala Block 3","Nagadevana Halli","Ambedkar Colony, Yelahanka","Doddabidarakallu","Anjanapura","Doddathoguru, Electronic City","Vimanapura, Airport Road","Nagarathpete","Cooke Town, Cooke Town","Doddakammanahalli","Domlur, Domlur","Sai Colony, Krishnarajapura","Vinayak Nagar, Kattigenahalli","Ganga Nagar","Wilson Garden","Srinivasa Nagar-Banashankari, Banashankari","Cunningham Road","Kadabagere","Punyabhoomi Layout","Jakkur","Yelahanka Dodda Ballapur Road","Hegde Nagar, R.K.Hegde Nagar","Sena Vihar, Kammanahalli","Virat Nagar, Bommanahalli","Dodda Banaswadi, Banaswadi","Vyalikaval, Malleshwaram","Rajamahal Guttahalli","Devanahalli","Karihobanahalli","Kadugondanahalli, Kadugondanahalli","GH Society"],
@@ -764,7 +745,6 @@
     Kolkata: ["Bandel","Phool Bagan, Kankurgachi","Salt Lake City Sector 2","Dumdum Park","South Dum Dum","Thakurpukur","Malancha","Palm Avenue Kolkata, Ballygunge","Natunhat","Action Area 1, Rajarhat Newtown","Keshtopur","Tarulia, Keshtopur","Dum Dum Metro","Paschim Barisha","New Town Action Area 1","Barasat","Behala","Behala Chowrasta","Santoshpur","Garia Station, Garia","Joka","Sreebhumi","Rajarhat","Dum Dum","Kodalia, Hooghly-Chinsurah","Baguiati","Rabindra Sarobar Area, Dhakuria","Baghajatin","Project Kaikhali, Vip Road","Vip Road","Baruipur","Shyam Bazar","Birati","Bansdroni","Jadavpur University","Bhadrakali","Ballygunge","Kalikapur","Baishnabghata Patuli Township, Patuli","Salt Lake City","New Town","Pancha Sayar","Hooghly-Chinsurah","Amtala, Diamond Harbour Road","Shrachi Village, Madhyam Gram","Kasba","VIP Road Haldiram","Sarsuna","Naihati","Baksara","Chak Thakurani, Thakurpukur","Jadavpur","Salt Lake City Sector 1","Beliaghata","Magnolia Prestige, Rajarhat","Dum Dum Heights, Jessore Road","Sonarpur","Lake Town","Belghoria","Rabindra Pally, Keshtopur","Hazra, Kalighat","Ajoy Nagar","Kasba -East","New Garia, Garia","Anandapur","Boral","Bagbazar","Salt Lake City Sector 3","Avenue S, Santoshpur","Pratiraksha Nagar","Kudghat, Ashok Nagar","Sakher Bazar, Purba Barisha","Purbasan, Thakurpukur","Bidhan Pally, Bansdroni","Naktala, Garia","Tiljala Road","Sankaritola","Parnashree Lake, Behala","Garia","Dakshineswar","Mukundapur","Salt Lake City Sector 5","Entally","Kaikhali","Dash Drone, Rajarhat Newtown","Rajdanga Gardens, Kasba","South Baksara","Chandannagar, Hooghly-Chinsurah","Sukhpally, Haltu","Garia Dhalua Nabapally","Chinar Park, Rajarhat","Konnagar","New Barrakpur","Thakurpukur, Kolkata","Hindmotor","Howrah","Benia Pukur","E M Bypass","Panchanan Tola, Thakurpukur","VIP Nagar, E M Bypass","Dum Dum Cantonment","Mominpur","Halisahar Station Road, Kanchrapara","Dunlop, Dakshineswar, Belgharia Expressway","Baguihati","Kabardanga","Haltu","Botanical Garden Area","Bonhooghly","Teghoria, Baguiati","Survey Park","Kanchrapara","Ultadanga","Bagha Jatin Pally","Baranagar","Tollygunge","Purbasa","Barasat-Barrackpore Road","Bata Nagar","Hatiara Extention","Andul","Khardah","Parnasree Pally","Jyangra","Sukchar","Tagore Park, Kasba","Barrackpore","Silpara, Purba Barisha","Madhyam Gram","Lake Gardens","Thakurpukur, Kolkata","Park Circus, Ballygunge","Haridevpur, Paschim Putiary","Bhawanipur","Sodepur","Liluah","Near DumDum Metro","Sukanta Nagar, New Barrakpur","Kumarpara, Narendrapur","Narendrapur","Sahid Nagar","Bow Bazar","New Alipore","Azadgarh","Mandirtala","Dhakuria","Rabindra Sarovar Metro","Regent Estate, Bijoygarh","Kumargali","Brahmapur","Purba Barisha","Pathak Para, Behala","Hatiara","Rabindrapally, Garia","Bangur Avenue, Lake Town","Hooghly","Kalabagan, Tollygunge","Rishra","Action Area 3, Rajarhat Newtown","Anandapuri, Barrackpore","Rabindrapally Kestopur","Baishnabghata, Garia","Santoshpur - EM Bypass","Nalta","Vivek Nagar, Garfa","Kalindi","New Garia Metro, New Garia","Agarpara","Dashadron Newtown Rajarhat","Gandhi Colony, Netaji Nagar","Em Bypass South East","Kalyani","Kestopur","Bijoygarh","Dasnagar","Baishnabghata Patuli, Patuli","Ramchandrapur north","Fartabad, Garia","Belgharia","Ramkrishna Pally, Kaikhali","Sarat Ghosh Garden, Dhakuria","Purba Putiary","Santragachi","Madurdaha, Hussainpur","Picnic Garden, E M Bypass","Nayabad","Ananda Pally, Jadavpur","Airport Area","Jodhpur Park","Purba Sinthi Area","Kadam Tala","Baidyabati","Jagacha","FC Block","Satgachi, South Dum Dum","AH Block, Salt Lake","Dhakuria -South East, Dhakuria","Baughati","Garfa","Sakuntala Park, Behala","Jheel Road","Ramrajatala","Rash Behari Avenue Connector","Siriti, Tollygunge","Nimta","Michael Nagar, New Barrakpur","Belgharia Nimta","Vedic Village, Rajarhat","Dashdrone","Sangati Colony, Netaji Nagar","Sahapur, New Alipore"],
     Mumbai: ["Shaheen Apartment, Andheri West","Santacruz West","Mira Road","Sion","Bhandup West","Bandra West","Chembur","Cuffe Parade","Mahim West","Prabhadevi","Worli","Malad East","Goregaon West","Ghatkopar West","Mira Bhayandar","Chembur East","Vile Parle East","Malad West","Powai","Andheri East","Lokhandwala Complex","Kanjurmarg West","Khar West","Chandivali","India Bulls Sky Forest, Lower Parel","Bhakti Park","Ghatkopar East","Kurla West","Dadar East","Dadar West","Vile Parle West","Oshiwara","Nirmal Lifestyle, LBS Marg","Tilak Nagar - Harbour Line","Kalina","Vile Parle","Borivali West","Mulund East","Vikhroli West","Mulund West","Dahisar East","Dharavi","Mazgaon","Borivali East","Kandivali West","Andheri West","Lower Parel","Irla","Mahim","Bhandup East","Byculla West","Santacruz East","Parel","Goregaon East","Worli Sea Face","Bandra East","Antop Hill","JVPD Scheme","Agripada","Navi Mumbai-Khargar-Panvel","Walkeshwar","Wadala","Sion East","Virar West","Malabar Hill","Yari Road","Mulund Railway Station","Seven Bungalows","Kamla Nagar","Kanjurmarg East","Datta Pada","Anushakti Nagar","Tata Nagar","Gulmohar Road","Nerul sector-3","Peddar Road","IC Colony","Peddar Road","Altamount Road","Bhayandar East","Pali Hill","Deonar","Poisar","Kandivali East","Ratan Silicon Park, Jankalyan Nagar","Naigaon East","Carter Road","Thakur Village, Kandivali East","Thakur Complex","Mira Road East","Virar","Purushottam Towers, Dadar West","Bhoiwada","Devi Pada","Manavsthal, Andheri East","Bhandup Village","Chakala","Saki Vihar Road","Pant Nagar","Charkop","Charkop Sector 6","Ketki Pada","Waterfield Road","Ghatla","Juhu Versova Link Road","Milap CHS, Seven Bungalows","Nalasopara West","Vikhroli","Jacob Circle","Dadar West","Hill Road, Bandra West","Hindu Colony","Ekta Nagar","Nahur Gaothan","JB Nagar","Sakinaka Junction","Juhu","Beverly Park","Vikhroli West","Mahavir Nagar","Dahisar West","Govandi Station Road","Grant Road","new panvel","Perry Rd","Deonar","Bhandup","Mount Mary","Opera House","Kurla","JL Tambe Nagar","Shivaji Park","Peddar Road","Union Park","Nalasopara West","Taloja Phase 2","Sion Trombay Road","Mahajan Wadi","Bhandup Village","Bhoiwada","Ketki Pada"],
   };
-
   // ── Feature importance data ───────────────────────────────────
   const factors = [
     { feature: 'Point of Contact', score: 0.275 },
@@ -778,7 +758,6 @@
     { feature: 'Furnishing',       score: 0.025 },
     { feature: 'Tenant Preferred', score: 0.015 },
   ];
-
   // ── Locality helpers ──────────────────────────────────────────
   function updateLocalities() {
     const city   = document.getElementById('City').value;
@@ -793,14 +772,12 @@
     });
     input.value = locs[0] || '';
   }
-
   function selectCity(card) {
     document.querySelectorAll('.city-card').forEach(c => c.classList.remove('active'));
     card.classList.add('active');
     document.getElementById('City').value = card.dataset.city;
     updateLocalities();
   }
-
   function syncCityStrip() {
     const city = document.getElementById('City').value;
     document.querySelectorAll('.city-card').forEach(c => {
@@ -808,14 +785,12 @@
     });
     updateLocalities();
   }
-
   // ── INR formatter ─────────────────────────────────────────────
   function inr(amount) {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency', currency: 'INR', maximumFractionDigits: 0
     }).format(amount);
   }
-
   // ── Button state ──────────────────────────────────────────────
   function setBusy(busy) {
     const btn  = document.getElementById('predictBtn');
@@ -826,22 +801,18 @@
     arr.textContent  = busy ? '⟳'              : '→';
     arr.className    = busy ? 'btn-arrow spinning' : 'btn-arrow';
   }
-
   // ── Result states ─────────────────────────────────────────────
   function showResult(amount) {
     document.getElementById('idleState').style.display  = 'none';
     document.getElementById('rentError').style.display  = 'none';
-
     const display = document.getElementById('rentDisplay');
     display.style.display = 'block';
-
     // Animated amount reveal
     const el = document.getElementById('rentAmount');
     el.textContent = inr(amount);
     el.classList.remove('pop');
     void el.offsetWidth;
     el.classList.add('pop');
-
     // Range band ±10%
     const low  = Math.round(amount * 0.90);
     const high = Math.round(amount * 1.10);
@@ -849,10 +820,8 @@
       `<span class="range-tag">Low ${inr(low)}</span>` +
       `<span class="range-tag highlight">Est ${inr(amount)}</span>` +
       `<span class="range-tag">High ${inr(high)}</span>`;
-
     document.getElementById('resultDot').classList.add('live');
   }
-
   function showError(msg) {
     document.getElementById('idleState').style.display   = 'none';
     document.getElementById('rentDisplay').style.display = 'none';
@@ -861,11 +830,9 @@
     err.style.display = 'block';
     err.textContent   = msg;
   }
-
   // ── Predict ───────────────────────────────────────────────────
   async function predictRent() {
     setBusy(true);
-
     const payload = {
       BHK:                document.getElementById('BHK').value,
       Size:               document.getElementById('Size').value,
@@ -878,7 +845,6 @@
       CurrentFloor:       document.getElementById('CurrentFloor').value,
       TotalFloors:        document.getElementById('TotalFloors').value,
     };
-
     try {
       const res  = await fetch(`${API_BASE}/predict`, {
         method:  'POST',
@@ -886,21 +852,18 @@
         body:    JSON.stringify(payload),
       });
       const data = await res.json();
-
       if (!res.ok || data.error || data.detail) {
         const errorMsg = data.detail || data.error || `Server error (${res.status}). Please try again.`;
         showError(errorMsg);
       } else {
         showResult(data.predicted_rent);
       }
-
     } catch {
-      showError('Cannot reach the prediction server. Make sure the API is running on port 5000.');
+      showError('Cannot reach the prediction server. Please check the Hugging Face Space logs.');
     } finally {
       setBusy(false);
     }
   }
-
   // ── Build factor bars ─────────────────────────────────────────
   function buildFactorBars() {
     const max  = factors[0].score;
@@ -914,17 +877,14 @@
         </div>`;
     }).join('');
   }
-
   // ── Build Chart.js ────────────────────────────────────────────
   function buildChart() {
     const ctx   = document.getElementById('importanceChart').getContext('2d');
     const names = factors.map(d => d.feature);
     const vals  = factors.map(d => d.score);
-
     const grad = ctx.createLinearGradient(0, 0, 500, 0);
     grad.addColorStop(0, 'rgba(45,53,97,0.25)');
     grad.addColorStop(1, 'rgba(45,53,97,0.9)');
-
     new Chart(ctx, {
       type: 'bar',
       data: {
@@ -962,7 +922,6 @@
     });
   }
 
-  // ── Init ──────────────────────────────────────────────────────
   function init() {
     updateLocalities();
     buildFactorBars();
