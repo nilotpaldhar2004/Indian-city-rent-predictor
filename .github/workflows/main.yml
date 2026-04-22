@@ -1,0 +1,26 @@
+name: Sync to Hugging Face hub
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push to hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKENG }}
+        run: |
+          # Use your actual email here
+          git config --global user.email "dharnilotpal31@gmail.com"
+          git config --global user.name "Nilotpal Dhar"
+          
+          git remote add hf https://nilotpaldhar2004:$HF_TOKEN@huggingface.co/spaces/nilotpaldhar2004/indian-metro-rent-ai
+          git push --force hf main

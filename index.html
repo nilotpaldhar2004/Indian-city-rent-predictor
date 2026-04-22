@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RentIQ — Indian Metro Rent Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* ── Tokens ───────────────────────────────────────────────── */
+    :root {
+      --cream:       #faf8f3;
+      --cream-2:     #f2ede3;
+      --cream-3:     #e8e0d0;
+      --ink:         #1a1612;
+      --ink-2:       #4a4035;
+      --ink-3:       #8a7d6e;
+      --gold:        #c8922a;
+      --gold-dim:    rgba(200, 146, 42, 0.12);
+      --gold-border: rgba(200, 146, 42, 0.3);
+      --indigo:      #2d3561;
+      --indigo-dim:  rgba(45, 53, 97, 0.08);
+      --indigo-mid:  rgba(45, 53, 97, 0.6);
+      --sage:        #5a7a5e;
+      --danger:      #c0392b;
+      --danger-dim:  rgba(192, 57, 43, 0.1);
+      --white:       #ffffff;
+      --shadow-sm:   0 1px 4px rgba(26,22,18,0.08);
+      --shadow-md:   0 4px 20px rgba(26,22,18,0.10);
+      --shadow-lg:   0 12px 48px rgba(26,22,18,0.14);
+      --radius:      10px;
+      --radius-lg:   16px;
+      --radius-xl:   24px;
+      --font-display:'Playfair Display', Georgia, serif;
+      --font-body:   'DM Sans', sans-serif;
+      --font-mono:   'DM Mono', monospace;
+      --transition:  200ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ── Reset ────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      background: var(--indigo);
+      padding: 52px 24px 64px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 15% 50%, rgba(200,146,42,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 80% at 85% 50%, rgba(90,122,94,0.15) 0%, transparent 60%),
+        repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.015) 40px, rgba(255,255,255,0.015) 41px);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+      animation: fade-up 0.6s ease both;
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 6vw, 58px);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 16px;
+      animation: fade-up 0.6s 0.1s ease both;
+    }
+    .hero-title em { font-style: italic; color: var(--gold); }
+    .hero-sub {
+      font-size: 15px;
+      color: rgba(255,255,255,0.55);
+      font-weight: 300;
+      max-width: 480px;
+      margin: 0 auto 32px;
+      line-height: 1.7;
+      animation: fade-up 0.6s 0.2s ease both;
+    }
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      animation: fade-up 0.6s 0.3s ease both;
+    }
+    .hero-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      padding: 5px 12px;
+      border-radius: 99px;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.06);
+    }
+    .hero-badge.gold { border-color: var(--gold-border); color: var(--gold); background: var(--gold-dim); }
+
+    /* ── City Strip ───────────────────────────────────────────── */
+    .city-strip {
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+      background: var(--indigo);
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .city-strip::-webkit-scrollbar { display: none; }
+    .city-card {
+      flex: 0 0 auto;
+      padding: 14px 22px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition);
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+      user-select: none;
+    }
+    .city-card:hover { color: rgba(255,255,255,0.8); }
+    .city-card.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .city-icon { margin-right: 6px; }
+
+    /* ── Main Grid ────────────────────────────────────────────── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 20px 60px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* ── Form Card ────────────────────────────────────────────── */
+    .form-card {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      animation: fade-up 0.5s 0.4s ease both;
+    }
+    .card-header {
+      padding: 22px 28px 18px;
+      border-bottom: 1px solid var(--cream-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .card-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      background: var(--cream-2);
+      padding: 4px 10px;
+      border-radius: 99px;
+    }
+    .form-body { padding: 24px 28px 28px; display: flex; flex-direction: column; gap: 0; }
+
+    /* Form sections */
+    .form-section { margin-bottom: 22px; }
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--cream-2);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-row.one   { grid-template-columns: 1fr; }
+    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .form-row + .form-row { margin-top: 12px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-2);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--cream-3);
+      border-radius: var(--radius);
+      background: var(--cream);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--indigo);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(45,53,97,0.08);
+    }
+    .field input:hover,
+    .field select:hover { border-color: var(--ink-3); }
+
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-3);
+      pointer-events: none;
+      font-size: 12px;
+    }
+    .select-wrap select { padding-right: 32px; cursor: pointer; }
+
+    /* Predict button */
+    .predict-btn {
+      width: 100%;
+      padding: 15px 24px;
+      background: var(--indigo);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius-lg);
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      font-style: italic;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-top: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .predict-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(200,146,42,0.2), transparent 60%);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .predict-btn:hover { background: #232952; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(45,53,97,0.35); }
+    .predict-btn:hover::before { opacity: 1; }
+    .predict-btn:active { transform: translateY(0); }
+    .predict-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-inner { display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-arrow { font-style: normal; font-size: 18px; transition: transform var(--transition); }
+    .predict-btn:not(:disabled):hover .btn-arrow { transform: translateX(4px); }
+
+    /* ── Right Column ─────────────────────────────────────────── */
+    .right-col { display: flex; flex-direction: column; gap: 20px; }
+
+    /* Result card */
+    .result-card {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      animation: fade-up 0.5s 0.5s ease both;
+    }
+    .result-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--cream-2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .result-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--cream-3);
+      transition: background var(--transition);
+      flex-shrink: 0;
+    }
+    .result-dot.live {
+      background: var(--sage);
+      animation: pulse-dot 2s ease infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(90,122,94,0.5); }
+      50%       { box-shadow: 0 0 0 5px rgba(90,122,94,0); }
+    }
+    .result-header-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .result-body {
+      padding: 28px 22px 24px;
+      text-align: center;
+      min-height: 170px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Idle */
+    .result-idle { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .idle-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: var(--cream-2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .idle-text {
+      font-size: 13px;
+      color: var(--ink-3);
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    /* Rent result */
+    .rent-display { display: none; width: 100%; }
+    .rent-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 8px;
+    }
+    .rent-amount {
+      font-family: var(--font-display);
+      font-size: clamp(30px, 5vw, 40px);
+      font-weight: 700;
+      color: var(--indigo);
+      line-height: 1;
+    }
+    .rent-amount.pop {
+      animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes pop-in {
+      from { opacity: 0; transform: scale(0.85) translateY(6px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .rent-sub {
+      font-size: 12px;
+      color: var(--ink-3);
+      margin-top: 4px;
+      font-weight: 300;
+    }
+    .rent-range {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .range-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: var(--indigo-dim);
+      color: var(--indigo-mid);
+      letter-spacing: 0.05em;
+    }
+    .range-tag.highlight {
+      background: var(--gold-dim);
+      color: var(--gold);
+      border: 1px solid var(--gold-border);
+    }
+
+    /* Error */
+    .rent-error {
+      display: none;
+      font-size: 13px;
+      color: var(--danger);
+      background: var(--danger-dim);
+      border: 1px solid rgba(192,57,43,0.2);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      line-height: 1.6;
+      width: 100%;
+    }
+
+    /* ── Insight Card ─────────────────────────────────────────── */
+    .insight-card {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      animation: fade-up 0.5s 0.6s ease both;
+    }
+    .insight-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--cream-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .insight-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .insight-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      background: var(--gold-dim);
+      border: 1px solid var(--gold-border);
+      padding: 3px 8px;
+      border-radius: 99px;
+    }
+    .insight-body { padding: 18px 22px 20px; }
+
+    .factor-list { display: flex; flex-direction: column; gap: 11px; }
+    .factor-item { display: flex; align-items: center; gap: 10px; }
+    .factor-name {
+      font-size: 12px;
+      color: var(--ink-2);
+      font-weight: 500;
+      width: 108px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .factor-track {
+      flex: 1;
+      height: 5px;
+      background: var(--cream-2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .factor-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #2d3561, #4a5299);
+      width: 0;
+      transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .factor-pct {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ink-3);
+      width: 34px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── Chart Card ───────────────────────────────────────────── */
+    .chart-card {
+      background: var(--white);
+      border: 1px solid var(--cream-3);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      animation: fade-up 0.5s 0.7s ease both;
+      grid-column: 1 / -1;
+    }
+    .chart-header {
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--cream-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chart-title {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .chart-sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+    .chart-body { padding: 20px 24px 24px; }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 28px 20px 36px;
+      border-top: 1px solid var(--cream-3);
+    }
+    .footer-text { font-size: 12px; color: var(--ink-3); line-height: 1.8; }
+    .footer-text a { color: var(--indigo); text-decoration: none; font-weight: 500; }
+    .footer-text a:hover { text-decoration: underline; }
+    .footer-stack { display: flex; justify-content: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .stack-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: var(--cream-2);
+      color: var(--ink-3);
+      border: 1px solid var(--cream-3);
+    }
+
+    /* ── Animations ───────────────────────────────────────────── */
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinning { display: inline-block; animation: spin 0.9s linear infinite; }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; gap: 20px; padding: 24px 16px 48px; }
+      .chart-card { grid-column: 1; }
+      .right-col { order: -1; }
+    }
+    @media (max-width: 560px) {
+      .hero { padding: 36px 16px 48px; }
+      .form-body { padding: 18px 16px 22px; }
+      .card-header { padding: 18px 16px 14px; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-row.three { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 360px) {
+      .form-row.three { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body onload="init()">
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-eyebrow">AI-Powered Real Estate Intelligence</div>
+  <h1 class="hero-title">Predict Your <em>Perfect</em> Rent</h1>
+  <p class="hero-sub">XGBoost model trained on thousands of real listings across India's six major metro cities.</p>
+  <div class="hero-badges">
+    <span class="hero-badge gold">XGBoost Model</span>
+    <span class="hero-badge">6 Metro Cities</span>
+    <span class="hero-badge">10 Features</span>
+    <span class="hero-badge">INR Optimised</span>
+  </div>
+</header>
+
+<!-- City strip -->
+<nav class="city-strip">
+  <div class="city-card active" data-city="Kolkata"   onclick="selectCity(this)"><span class="city-icon">🏙</span>Kolkata</div>
+  <div class="city-card"        data-city="Mumbai"    onclick="selectCity(this)"><span class="city-icon">🌊</span>Mumbai</div>
+  <div class="city-card"        data-city="Bangalore" onclick="selectCity(this)"><span class="city-icon">🌿</span>Bangalore</div>
+  <div class="city-card"        data-city="Delhi"     onclick="selectCity(this)"><span class="city-icon">🏛</span>Delhi</div>
+  <div class="city-card"        data-city="Chennai"   onclick="selectCity(this)"><span class="city-icon">🎭</span>Chennai</div>
+  <div class="city-card"        data-city="Hyderabad" onclick="selectCity(this)"><span class="city-icon">💎</span>Hyderabad</div>
+</nav>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- Left: Form -->
+  <div class="form-card">
+    <div class="card-header">
+      <div class="card-title">Property Details</div>
+      <div class="card-tag">30-second estimate</div>
+    </div>
+    <div class="form-body">
+
+      <!-- Location -->
+      <div class="form-section">
+        <div class="section-label">Location</div>
+        <div class="form-row">
+          <div class="field">
+            <label>City</label>
+            <div class="select-wrap">
+              <select id="City" onchange="syncCityStrip()">
+                <option value="Kolkata">Kolkata</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Bangalore">Bangalore</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Hyderabad">Hyderabad</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Area Locality</label>
+            <input list="locality-list" id="Area Locality" placeholder="Type locality…" />
+            <datalist id="locality-list"></datalist>
+          </div>
+        </div>
+      </div>
+
+      <!-- Property specs -->
+      <div class="form-section">
+        <div class="section-label">Property Specs</div>
+        <div class="form-row three">
+          <div class="field"><label>BHK</label><input type="number" id="BHK" value="2" min="1" max="10" /></div>
+          <div class="field"><label>Bathrooms</label><input type="number" id="Bathroom" value="2" min="1" max="10" /></div>
+          <div class="field"><label>Size (sq ft)</label><input type="number" id="Size" value="1000" min="100" /></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Current Floor</label><input type="number" id="CurrentFloor" value="2" min="0" /></div>
+          <div class="field"><label>Total Floors</label><input type="number" id="TotalFloors" value="5" min="1" /></div>
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="form-section">
+        <div class="section-label">Preferences</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Furnishing</label>
+            <div class="select-wrap">
+              <select id="Furnishing Status">
+                <option value="Unfurnished">Unfurnished</option>
+                <option value="Semi-Furnished">Semi-Furnished</option>
+                <option value="Furnished">Furnished</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Tenant Preferred</label>
+            <div class="select-wrap">
+              <select id="Tenant Preferred">
+                <option value="Bachelors/Family">Bachelors / Family</option>
+                <option value="Bachelors">Bachelors</option>
+                <option value="Family">Family</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-row one" style="margin-top:12px">
+          <div class="field">
+            <label>Point of Contact</label>
+            <div class="select-wrap">
+              <select id="Point of Contact">
+                <option value="Contact Owner">Contact Owner</option>
+                <option value="Contact Agent">Contact Agent</option>
+                <option value="Contact Builder">Contact Builder</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="predict-btn" id="predictBtn" onclick="predictRent()">
+        <div class="btn-inner">
+          <span id="btnText">Estimate My Rent</span>
+          <span class="btn-arrow" id="btnArrow">→</span>
+        </div>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="right-col">
+
+    <!-- Result card -->
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-dot" id="resultDot"></div>
+        <div class="result-header-label">AI Prediction</div>
+      </div>
+      <div class="result-body">
+        <div class="result-idle" id="idleState">
+          <div class="idle-icon">🏠</div>
+          <div class="idle-text">Fill in the property details<br>and hit <strong>Estimate My Rent</strong></div>
+        </div>
+        <div class="rent-display" id="rentDisplay">
+          <div class="rent-label">Estimated Monthly Rent</div>
+          <div class="rent-amount" id="rentAmount">₹0</div>
+          <div class="rent-sub">per month · INR</div>
+          <div class="rent-range" id="rentRange"></div>
+        </div>
+        <div class="rent-error" id="rentError"></div>
+      </div>
+    </div>
+
+    <!-- What drives price -->
+    <div class="insight-card">
+      <div class="insight-header">
+        <div class="insight-title">What drives the price?</div>
+        <div class="insight-tag">XGBoost</div>
+      </div>
+      <div class="insight-body">
+        <div class="factor-list" id="factorList"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Full-width chart -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Feature Importance Analysis</div>
+        <div class="chart-sub">Model's learned weight assigned to each input feature</div>
+      </div>
+      <div class="card-tag">XGBoost · Trained</div>
+    </div>
+    <div class="chart-body">
+      <canvas id="importanceChart" style="max-height:260px"></canvas>
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-text">
+    Built by <a href="https://github.com/nilotpaldhar2004" target="_blank">Nilotpal Dhar</a> ·
+    Indian Metro Rent Predictor · Trained on real listing data
+  </div>
+  <div class="footer-stack">
+    <span class="stack-pill">XGBoost</span>
+    <span class="stack-pill">FastAPI</span>
+    <span class="stack-pill">Pandas</span>
+    <span class="stack-pill">scikit-learn</span>
+    <span class="stack-pill">Chart.js</span>
+  </div>
+</footer>
+
+<script>
+  // ── Config ────────────────────────────────────────────────────
+  // Deployed Flask backend on Render.
+  // For local dev, swap this to 'http://127.0.0.1:5000' 'https://indian-city-rent-predictor.onrender.com'
+  const API_BASE = 'https://indian-city-rent-predictor.onrender.com';
+
+  // ── City locality database (full dataset) ─────────────────────
+  const cityDB = {
+    Bangalore: ["Talagatta Pura","Nagappa Reddy layout-Dooravani Nagar","Kattigenahalli, Bellary Road","C V Raman Nagar","Chikkalasandra, Bangalore","Talaghattapura","Malleshwaram","Ramaiah Layout, Kacharakanahalli","Rajajinagar","Padmanabha Nagar","Kengeri Main Road","Ramamurthy Nagar","Thanisandra","J P Nagar","Bannerghatta Main Road","Vinayakanagar, Hebbal","venkatapuram","Vv Nagar, Bikasipura","Kacharakanahalli","Tumkur Road","Babusahib Palya","Kumaraswamy Layout, Kumaraswamy Layout","Nri Layout","Balaji Layout -Hongasandra, Hongasandra","Vijaya Bank Layout","Jaya Nagar Block 1, Jayanagar","Maruthi Sevanagar","Nelamangala","Yelahanka New Town","Hongasandra","Girinagar","T Dasarahalli","Jogupalya","Balaji Gardens Layout, Gottigere","in Bannerghatta Road","Electronic City Phase 2, Electronic City","Hebbal","Jalahalli East","Garebhavipalya, Hongasandra, Hosur Road","Btm Layout Stage 4","Konanakunte","Basaveshwar Nagar","Jp Nagar Phase 7, J P Nagar","Koramangala Block 4","Aecs Layout-Singasandra, Singasandra, Hosur Road","Mahadevapura","Banaswadi","Kalasipalyam, Kalasipalyam","Tilak Nagar, Jayanagar, bannerghatta main Road","K R Puram","Electronic City","Sarjapur Road","whitefield","Nagondanahalli","Isro Layout, Kumaraswamy Layout","Banashankari","JAR Shikara","Medahalli","Byatarayanapura","Udayanagar Extension, Mahadevapura","Dwarka Nagar, Kattigenahalli","Btm Layout","Jeevan Bima Nagar, Airport Road","Jaya Nagar Block 7, Jayanagar","Chamrajpet","Hosa Road, off Hosur Road","Electronics City Phase 1, Electronic City","Subramanyapura","Kempapura Agrahara","Vijayanagar","Munnekollal","Sarakki Nagar, J P Nagar","Ananda Puram, Jeevan Bima Nagar","Hrbr Layout, Kalyan Nagar, Outer Ring Road","Horamavu kelkkeri road","Vishweshwaraiah Layout, Annapurneshwari Nagar","Babusapalya","Hutchins Road","Jp Nagar Phase 1, J P Nagar","Rbi Layout, J P Nagar","Hbr Layout Block 4, HBR Layout","Frazer Town","Chikkalasandra","Abbigere","Chikkabanavara","Meenakshi Layout, Kengeri","Mahatma Gandhi Road","Bilekahalli","Madanayakahalli","Sivanchetti Gardens","Nagavara","Horamavu","Magadi Road","Bagalakunte","Murugeshpalya, Airport Road","Gottigere","Jalahalli, Jalahalli, Outer Ring Road","Dooravani Nagar, Dooravani Nagar","Hommadevanahalli","Ms Palya, Vidyaranyapura","Mathikere","Btm Layout Stage 2, BTM Layout","Sanjeevini Nagar, Hegganahalli","Prakruthi Township, Hennur","M C Layout, Vijayanagar, Magadi Road","Dr.Shivaram Karanth Nagar, Jakkuru","Rayasandra","Lakkasandra, Wilson Garden, bannerghatta main road","Mysore Road","Kengeri","B.Narayanapura","Ananth Nagar","Basavanagudi","Old Airport Road","Hegganahalli","Hrbr Layout Block 2, Kalyan Nagar, Outer Ring Road","Vishwapriya Nagar, Begur","Kanakapura Road","Kamala Nagar","Kachohalli","Bommanahalli","Rmv Extension Stage 2","Nagarbhavi","Marathahalli","Kodigehalli","Rukmini Nagar","Vibhutipura","Mallasandra, Jalahalli West","Hebbal Kempapura","Jp Nagar Phase 5, J P Nagar, Outer Ring Road","Kannur","Bhattarahalli","Raghuvanahalli-Bcmc Layout","Chandapura","Hoysala Nagar","Vasanth Nagar","Nagarabhavi","Indira Nagar","Kodi Halli","Jagadish Nagar, Kaggadasapura","Kadugodi","Yeshwantpur","Vidyaranyapura","Bommasandra","Bangalore","Malleshpalya, Kaggadasapura","Jaya Nagar Block 3","Arakere Mico Layout, Arakere","Seshadripuram","Ullal Upnagar","Guttahalli","Koramangala","Jp Nagar Phase 6, J P Nagar, Outer Ring Road","Basava Nagar","Kaggadasapura, Indira nagar","Banashankari Stage 3, Banashankari","Yelachenahalli, Kumaraswamy Layout, Kanakapura Road","Lavelle Road","Hesaraghatta Main Road","Konappana Agrahara, Electronic City","Dinnur, Hebbal","Chikkasandra-Jalahalli West, Jalahalli West","Doddanekundi, Kartik Nagar","Jp Nagar Phase 2, J P Nagar","Attibele","Devinagar, Outer Ring Road","Fci Layout, Deepanjali Nagar","Ombr Layout, Banaswadi","Sinthan Nagar, Thanisandra","Kengeri Hobli","Kodichikkanahalli Main Road","Mangammanapalya, Hosur Road","Uttarahalli","Immadihalli, Whitefield","Yelahanka","Jaya Nagar Block 5, Jayanagar","Varthur","Peenya Industrial Area, Tumkur Road","Nandini Layout","Chamundi Nagar, Rajajinagar","Ilyas Nagar, Kumaraswamy Layout","Nobo Nagar, Kalena Agrahara","Byrathi","Doddanagamangala","Hoodi Circle, Hoodi","Kammanahalli","Yelechenahalli","Jayanagar","Kengeri Satellite Town","Akshayanagar","HMT Layout Nagasandra","Begur Road","Nimbekaipura","Kr Garden-Murugeshpalya, Murugeshpalya, Airport Road","Srinagar, Banashankari","Nagarabhavi BDA complex","Manayata Tech Park","Bhel Township- Malleshwaram, Malleshwaram","Coffee Board Layout, Nagavara","Rampura","Mallathahalli, Outer Ring Road","Hosakerehalli","Anantapura","Richmond Town, Richmond Town","Jyothi Nagar, Dooravani Nagar","Bikasipura, kanakapura Road","Kudlu","Horamavu Agara, Hormavu","Hmt Layout Block 4, Vidyaranyapura","Hennur Main Road","Kothanur","Visthar","Syndicate Bank Colony, Arakere","Bhuvaneswari Nagar","Ews Colony, BTM Layout","Peenya 2nd Stage","Banashankari Stage 2, Banashankari","Kogilu","Bhel Layout, Rajarajeshwari Nagar","Bohra Layout, Gottigere, bannerghatta main Road","Kodigenahalli","Begur","Battarahalli","Budigere Cross","Dollars Colony-Rmv Extension Stage 2, RMV Extension Stage 2","Itpl, Whitefield","Hsr Layout Sector 6, HSR Layout","Hosa Road Junction","East Of Ngef Layout, Bennigana Halli","Parappana Agrahara","Ags Layout, Hebbal","Doddabanahalli","Shivananda Nagar, Vijayanagar","Jaya Nagar Block 8, Jayanagar","Hulimavu","Dodda Nekkundi Extension, Kartik Nagar, Outer Ring Road","Kasturi Nagar","Langford Gardens","Maruthi Extesnion, Rajajinagar","Shampura, Kaval Byrasandra","Choodasandra","Arakere","New Thippasandra","A Narayanapura, Mahadevapura","New Bel Road","Gunjur","Sahakara Nagar","Adugodi","Banjara Layout","Vijay Enclave","Ejipura","Hal Layout, Hosur Road","Panduranga Nagar, bannerghatta main Road","CV Raman Nagar","Hoodi, Hoodi","Channasandra","Ulsoor Road","Basavanapura","Aditya Nagar-Vidyaranyapura, Vidyaranyapura","Koramangala Block 1","Amrutahalli","ITI Layout","Thambuchetty Palya","Pai Layout-Hulimavu, Hulimavu","Outer Ring Road","Garvebhavi Palya","Halasuru","Mylasandra","Rajarajeshwari Nagar","Laggere","Hsr Layout Sector 3, HSR Layout","Seetharampalya, Hoodi","Manyata Residency, Thanisandra","Vijaya Bank Colony -Bilekahalli, Bilekahalli","Nallurhalli, Whitefield, Borewell Road","Maruthi Nagar-Yelahanka, Yelahanka","Chuchangatta Colony, J P Nagar","Ashok Nagar","Hsr Layout","Sanjay Nagar Stage 2","Ramachandrapuram Rajajinagar","Kalyan Nagar","Haralur Road","Hsr Layout Sector 2, HSR Layout","Annapurneshwari Nagar","Ragavendra Nagar","Attiguppe","Kalkere","Yemalur","Benson Town","Cox Town","Chinnapanna Halli","Neelasandra","Ramagondanahalli","Lakshmipura","Kudlu Gate","Basaveshvara Nagar","Rmv Extension, Armane Nagar","Ittamadu, Banashankari, Outer Ring Road","Kengeri Upanagara","Jayanti Nagar, Hormavu","Tannery Road","Whitefield","Sir M V Nagar","Shanti Nagar","Shivaji Nagar","RT Nagar","Sunkadakatte","Attur Layout, Yelahanka New Town","Chelekare, Kalyan Nagar, Outer Ring Road","Venkatpura, HSR Layout","Devarachikannahalli, Begur Road","Hbr Layout Block 2, HBR Layout","Raghavendra Layout","Doddaballapur Road","Hbr Layout","Lingarajapuram, Lingarajapuram, Hennur Main Road","HRBR Layout Block 1","Maruthi Nagar-Kaggadasapura, Kaggadasapura","Kammagondahalli, Jalahalli","Dhobi Ghat- Rajajinagar","Singasandra, Hosur Road","Marathahalli-Sarjapur Outer Ring Road","Koramangala 8Th Block","Agrahara Layout","Sadashiva Nagar","Krishna Reddy Layout -Domlur","Jakkur Plantation, Jakkuru, Bellary Road","Laxminarayana Layout, Munnekollal","Jnana Ganga Nagar","Bagalur","Airport Road","Mavalli","Hormavu Ring Road","Hosur Road","Ullal Main Road","Chowdeshwari Layout, Yelahanka","Koramangala Block 3","Nagadevana Halli","Ambedkar Colony, Yelahanka","Doddabidarakallu","Anjanapura","Doddathoguru, Electronic City","Vimanapura, Airport Road","Nagarathpete","Cooke Town, Cooke Town","Doddakammanahalli","Domlur, Domlur","Sai Colony, Krishnarajapura","Vinayak Nagar, Kattigenahalli","Ganga Nagar","Wilson Garden","Srinivasa Nagar-Banashankari, Banashankari","Cunningham Road","Kadabagere","Punyabhoomi Layout","Jakkur","Yelahanka Dodda Ballapur Road","Hegde Nagar, R.K.Hegde Nagar","Sena Vihar, Kammanahalli","Virat Nagar, Bommanahalli","Dodda Banaswadi, Banaswadi","Vyalikaval, Malleshwaram","Rajamahal Guttahalli","Devanahalli","Karihobanahalli","Kadugondanahalli, Kadugondanahalli","GH Society"],
+    Chennai: ["Medavakkam","Urapakkam, Vandalur R.F, GST Road","R.A Puram, Mandaiveli","Madras Boat Club Road","Kambar Colony","Thalambur","Anakaputhur","Ashok Nagar","Padur, Old Mahabalipuram Road","Mangadu","Ponmar","Annanagar west","Karapakkam","Alandur","Selaiyur","Iyyappanthangal","Poonamallee","Chromepet, GST Road","KK Nagar","Sadhanadhapuram","Tambaram West, Tambaram, Chennai Bypass Road","Ramapuram","Poongavanapuram","Egmore, PH Road","Old Mahabalipuram Road","Sholinganallur","Guduvancheri","Thiruvanmiyur","Aminjikarai, PH Road","Purasawalkam, PH Road","Alwarpet","Madanankppam","Thirumazhisai","T Nagar","Koyambedu","Pammal","Velachery","Tambaram, GST Road","Perambur","Bunder Garden, Perambur","Sikkarayapuram","Kanathur Reddikuppam","Adambakkam","Kovilancheri","Nanganallur","Karambakkam, Porur","Arumbakkam","Royapettah","Nandambakkam","Pallikaranai","Adyar, Sardar Patel Road","Tambaram East","Tambaram Sanatorium","Camp Road","Ranganathapuram-Medavakkam","Kodambakkam","Oragadam Sriperumbudur","Mandaiveli","Abiramapuram","Perungalathur, Chennai Bypass Road","Okkiyam Thuraipakkam, E Coast Road","T.Nagar","KK Nagar West, KK Nagar","Madipakkam","Choolaimedu","Sithalapakkam","Mambalam West","Nungambakkam","Perungudi","Ennore","Thillai Ganga Nagar, Nanganallur","Raja Annamalai Puram","Kayarambedu","Siruseri","AGS Colony-Velachery","Kelambakkam, Old Mahabalipuram Road","Gopalapuram","Virugambakkam","Pattabiram","Pallavaram","East Coast Road","Tiruvallur","Pudur","Vadapalani","Mylapore","Villivakkam, Jawaharlal Nehru Road","Jafferkhanpet","Mappedu, Selaiyur","Ambattur","Irumbuliyur","New Perungalathur","Ayanavaram","Mathur","Thirumullaivoyal","Ayappakkam","Perumbakkam","Annanagar East","Anna Nagar West","Thiruporur","Old Washermanpet","Kazhipattur","Navalur","Valasaravakkam, Arcot Road","Pudupakkam","Anna Nagar-Pammal","Mannivakkam","Kovilambakkam","Teynampet","Uthandi","Kolathur","Saidapet West, Saidapet","Redhills","Mambakkam","Thoraipakkam","Poonamalle","Kalavakkam","Vandalur","Chennai","Korattur, Jawaharlal Nehru Road","S.Kolathur","Oragadam","Chitlapakkam","Sivalingapuram","Anna Nagar West Extension","Porur","Madhavaram, Guntur Chennai Highway","Kovur","Panaiyur, E Coast Road","Maduravoyal","Kannan Colony, Pazhavanthangal","Thirumangalam-Anna Nagar West","Krishna Nagar-Chromepet, Chromepet","Tiruvottiyur","Ponneri","Kundrathur, Pallavaram Kundrathur Main Road","Mugalivakkam","Anna Nagar","Kattupakkam, PH Road","Pazhavanthangal, Jawaharlal Nehru Road","Mahindra World City","Harrington Road","MRC Nagar","Kamakoti Nagar, Pallikaranai","Veerapuram","Manapakkam","Nemilichery, Chromepet","Central Bank Colony, Chromepet","Gowrivakkam, Sembakkam","Palavakkam, E Coast Road","Jawahar Nagar","Zamin Pallavaram, Pallavaram","Shenoy Nagar, PH Road","Sembakkam","Ganapathipuram, Chromepet","Chetpet, PH Road","Elango Nagar-Virugambakkam","Tondiarpet, Ennore High Road","Triplicane","Nesapakkam","Baby Nagar Extention, Velachery","Mogappair East","Thiruverkkadu","Neelankarai, E Coast Road","Madambakkam","Karanai","Varadharajapuram","George Town, PH Road","Avadi","Ponniammanmedu","Kamaraj Nagar-Thiruvanmiyur, E Coast Road","Alapakkam, Porur","VGP Seethapathy Nagar, Velachery","Saidapet","Indira Colony","Potheri, Kattankulathur","Kilpauk","Mogappair West","Thirunagar","Chembarambakkam","Keelkattalai","Guindy","Kallikuppam","Nandanam","Purasaiwakkam","Guindy Race Course, Guindy","Poes Garden, Teynampet","Choolaimedu High Road","Tharamani","Rani Anna Nagar","G S T Road","Bharath Nagar, Porur","Gandhi Nagar Adyar","Nanmangalam","Old Pallavaram, Alandur","Menambedu","Vettuvankeni","Narayanapuram, Kovilambakkam","Luz, Mylapore","Kambar Nagar-Kolathur","Jaya Nagar, Porur, Chennai Bypass Road","Porur Gardens","Ullagaram, Pallavaram-Thuraipakkam Road","Semmenchery","CIT Nagar","Radha Nagar, Chrompet","Adyar, Thiruvanmiyur, Chennai","Manali, Manali High Road","Nandanam","Bharathidasan Colony, KK Nagar","Besant Nagar","Chintadripet","Mudichur","Santhosapuram, Medavakkam","Thandalam","Padapai","Lake Area, Nungambakkam","Rajakilpakkam, Selaiyur","Subramaniya Swamy Nagar, Valasaravakkam, Arcot Road","Tharamani","Banu Nagar","Nanmangalam","TTK Nagar, Tambaram","Injambakkam","Kasturibai Nagar","Nandivaram-Guduvancheri","Alwarthirunagar","Anna Nagar East","Periyamet","Kamarajar Salai"],
+    Delhi: ["Keshav Puram, Tri Nagar","Hauz Khas","South Extension 1","Neb Sarai","Shivalik, Malviya Nagar","Freedom Fighters Enclave","Amar Colony, Lajpat Nagar","Vasant Kunj","Ganesh Nagar, Tilak Nagar","Janakpuri","Sudarshan Park","New Friends Colony","Shakti Nagar","Uttam Nagar","Nizamuddin East, Nizamuddin","Safdarjung Development Area, Hauz Khas","New Ashok Nagar","Pandav Nagar","Saket","Green Park","Rohini Sector 24","Subhash Nagar","Dwarka Mor","Laxmi Nagar","Rohini Sector 18","Rohini Sector 23","New Rajendra Nagar","Greater Kailash 2","Malviya Nagar","Palam Colony, Palam","Model Town","Chhattarpur","Vikaspuri","Hari Nagar Ashram","Najafgarh","Arjun Nagar, Safdarjung Enclave","Bhogal, Jangpura","Defence Colony","Dwarka sec 19","Chitra Vihar, Swasthya Vihar","Chittaranjan Park Block B","Kailash hills, East Of Kailash","Lajpat Nagar 1","Lajpat Nagar","Rohini Sector 16","Guru Angad Nagar West, Laxmi Nagar","Dilshad Colony","Vasant Kunj Sector B","Rohini Sector 11","Mansarover Garden","Lado Sarai","Dakshini Pitampura","Palam","Kalkaji Extension","Dwarka Sector 7","Jhangir Puri","Janak Park, Hari Nagar","Ganga Vihar","IGNOU Road, Saket","Bijwasan","Prem Nagar","Gandhi Nagar","Lajpat Nagar 4","Mukherjee Nagar","Inder Puri Block A, Inder Puri","Raghubir Nagar, Tagore Garden Extension","Vivek Vihar Phase 2","Gautam Nagar","Chhattarpur Enclave","Mandakini Enclave, Alaknanda","Ram Nagar","Geeta Colony","Rohini Sector 3","Aya Nagar","Karol Bagh","Mahendru Enclave, Model Town","Sultanpur","Kalkaji","Mehrauli","Rangpuri","Sagar Pur","Hastsal","Kamla Nagar","Rajouri Garden","Prem Nagar, Patel Nagar","Shadipur","Krishna Nagar Block D","Nawada","DDA Flats Sarita Vihar, Sarita Vihar, Mathura Road","Vasant Kunj 2, Vasant Kunj","Fateh Nagar, Janakpuri","Kotla, Mayur Vihar","Dwarka Sector 23","Palam - Dabri Marg","Mansa Ram Park","Paschim Vihar","Jamia Nagar, Okhla","Vasundhara Enclave","Jangpura Extension, Jangpura","Dwarka Sector 14","Hari Nagar","Kailash Colony, Greater Kailash","Rohini Sector 2","Chittaranjan Park","The Shabad Apartment, Dwarka Sector 13","Krishna Nagar","Sangam Vihar","Rohini Sector 38","Anand Parbat","Burari","Qutub Vihar, Dwarka","Mohan Garden, Razapur Khurd","Bharthal, Dwarka","Chanakya Place, Sitapuri","Radhey Shyam Park","Rajpur Khurd Extension, Rajpur","Kotla Mubarakpur, South Extension","Lajpat Nagar 3","Patparganj","Shanti Niketan","Paschim Vihar Block B1","Rohini Sector 8","Mansarovar garden","Adarsh Nagar","Patel Nagar West","Gagan Vihar, Krishna Nagar","Greater Kailash 1","Dr Mukherjee Nagar West","Janakpuri Block B1","Karkardooma, Anand Vihar","Preet Vihar","Mausam Vihar","Nirman Vihar, Preet Vihar","Vivek Vihar","Surajmal Vihar","Pushpanjali, Anand Vihar","Sarvodaya Enclave","Chittaranjan Park Block K","Sarita Vihar Pocket M","Raj Nagar 2","Chirag Delhi","Devli, Sangam Vihar","Trilokpuri","Kadipur","Mahipalpur","Gharoli","Bhajanpura","Ghitorni","Rohini Sector 7","Rohini Sector 4","Ber Sarai","Shakarpur","Dwarka Sector 8","East Of Kailash","Mandawali","Badarpur","Shahdara","Nirankari Colony, Mukherjee Nagar","Maidan Garhi, Chhattarpur","Vikash Nagar","Jagriti Enclave, Anand Vihar","Saini Enclave, Anand Vihar","Vivek Vihar Phase 1","AGCR Enclave, Anand Vihar","Chattarpur Extension","Sheikh Sarai","Dwarka","Mahavir Enclave Part 1","Rohini Sector 17","Mayur Vihar Phase 1 Extension","Dwarka Sector 22","Munirka Vihar, Munirka","Dilshad Garden","Vasant Kunj Sector C","Mayur Vihar 1","Vinod Nagar East","Ramesh Nagar","New Mahavir Nagar, Tilak Nagar","Khanpur, Madangir","Bindapur","Rohini Sector 5","Safdarjung Enclave","Sarita Vihar Pocket C","Indraprastha Extension, Patparganj","Sarita Vihar Pocket K","Anand Niketan","Ashok Vihar Phase 2","Sheikh Sarai Phase 1","New Delhi","Rohini Sector 15","Shakarpur Khas, Shakarpur","Vinod Nagar West","Munirka","Dayanand Vihar, Anand Vihar","Shalimar bagh","Rohini Sector 21","Paschim Vihar Block A6","Govindpuri Main","Mayur Vihar 3","Pitampura","Pul Prahlad Pur","Vasant Vihar","DJA Apartments, Dwarka Sector 13","Dwarka Sector 17","Dwarka Sector 9","Kishangarh, Vasant Kunj","Vikram Vihar, Lajpat Nagar","Gopalpur","Mayur Vihar","Bhagwati Garden","Dwarka Sector 23B","Sarita Vihar, Mathura Road","Greater Kailash","Karawal Nagar","Tagore Garden, Rajouri Garden, Najafgarh Road","Panchsheel Vihar, Sheikh Sarai","Bhalswa","Krishna Park","Tri Nagar","West End","Jhilmil Colony","Sundar Nagar","Mahaveer Nagar","Peera Garhi","Paschim Vihar Block A3","Jaitpur","Palam Extension","DDA Flats Sector E Pocket 1, Vasant Kunj","Panchsheel Park","Rohini Sector 21","Rohini Sector 22","Narela","Sarojini Nagar","Aya Nagar Extension","Jangpura","Ashok Nagar","Sant Nagar","Nalanda Apartment, Vikaspuri"],
+    Hyderabad: ["Financial District, Nanakram Guda","Jubilee Hills","Meerpet","Himayath Nagar, NH 7","Moti Nagar","Kondapur","TNGOS Colony","Langar Houz","Musheerabad","Attapur","Chilakalguda","Hyderguda","Karmanghat","Ghatkesar, NH 2 2","Jagadgiri Gutta","Aruna Colony","Kothapet","Fathenagar","Abids, NH 7","Gayatri Hills, Jubilee Hills","Nizampet","Madhapur","Puppalaguda","Mehdipatnam","Vanasthalipuram, NH 9","Alkapur Township, Manikonda, Outer Ring Road","Boduppal, NH 2 2","Gachibowli","Bandlaguda Jagir","Gopanapalli","Hydershakote","Ameenpur","Quthbullapur, NH 7","Rajendra Nagar, Outer Ring Road","Sanath Nagar, NH 9","Dammaiguda","Narsingi, Outer Ring Road","Kompally","Banjara Hills, NH 9","Vittal Rao Nagar, Hitech City","BHEL","Rasoolpura, Mahatma Gandhi Road","Miyapur, NH 9","Sainikpuri","Nallagandla, Serilingampally","Chandanagar, NH 9","Narayanaguda","Old Bowenpally","Chanda Nagar","Malkajgiri","Nacharam","Amberpet","Narayanguda","Alwal","Upparpally, Hyderabad Expressway","Bollaram, Outer Ring Road","Mallepally, NH 7","ECIL","Patrika Nagar, Hitech City","Ramanthapur, NH 2 2","Seri Lingampally","Pragathi Nagar, Kukatpally","Kachiguda, NH 2 2","Dr A.S. Rao Nagar","Gajularamaram","Kukatpally, NH 9","Borabanda","Gandhamguda, Bairagiguda","Defence Colony Layout","Pathar Gatti, NH 7","Upperpally","Toli Chowki","APHB Colony-Moula Ali, Moula Ali Road","Pocharam, NH 2 2","Nanakram Guda","Lal Darwaza","New Malakpet","Shivaji Nagar","New Nallakunta","Santosh Nagar","Bapu Nagar-Langar Houz","Uppal, NH 2 2","Jillelguda, Medbowli","Arvind Nagar Colony, Toli Chowki","Nagole","Red Hills, Lakdikapul, NH 7","Secunderabad","Mallampet, Outer Ring Road","Bolarum, Medchal Road","Shamirpet","Masab Tank","KPHB Road","Hayathnagar, NH 9","Kapra","Hyderaguda-Attapur","Beeramguda, Ramachandra Puram, NH 9","Somajiguda, NH 9","Madhura Nagar-Nizampet","IAS Colony","Bowenpally","Hitech City","Lakdikapul, NH 9","Manikonda, Outer Ring Road","Chanda Naik Nagar, Madhapur","Ashok Nagar, Himayath Nagar","Kismatpur, Outer Ring Road","Saroornagar, NH 9","Nanakaramguda","Madinaguda, Hafeezpet, NH 9","Saidabad Colony, Sayeedabad","Ramchandrapuram Mandal","Padmanabha Nagar, Mehdipatnam","Rampally","Suchitra Circle","Gachibowli CUC, Outer Ring Road","Begumpet","IDA Uppal","New Nagole Colony, Kothapet","Trimulgherry","Jeedimetla","Bandam Kommu","Ramachandra Puram, NH 9","Bapu Nagar, Lakdikapul","Habsiguda, NH 2 2","Khaja Guda, Outer Ring Road","Dhulapally","Khanapur","Abhyudaya Nagar","Bachupally","Patelguda","Kokapet, Outer Ring Road","Khairatabad, NH 7","Safilguda, Secunderabad","Nawab Saheb Kunta","Subhash Nagar, Secunderabad","MLA Colony, Banjara Hills","Basheer Bagh, NH 7","Padmarao Nagar, Hyderabad-Karimnagar Highway","Sivarampalli, Hyderabad Expressway","Kanchan Bagh","Vikas Nagar-Bandlaguda Jagir","OU Colony-Shaikpet","Gangaram, Chandanagar, NH 9","Kanaka Durga Colony, Gudimalkapur","Saidabad","Bharat Nagar, Moosapet","Rock Town Colony","DNM Colony, Sanath Nagar","Suraram","Vidyanagar","Nalagandla","Peerzadiguda, NH 2 2","LB Nagar, NH 9","Tarnaka","Rhoda Mistri Nagar","Aminpur","Film Nagar","Hafeezpet, NH 9","Chanchalguda","Old Malakpet, NH 9","LIG Colony","Chintalakunta","Osman Nagar","Serilingampally","Nagaram","Medipally","Hyder Nagar, NH 9","Budwel","Prakash Nagar","Malakpet, NH 9","Moula Ali","Bheeram guda","Raj Bhawan Road","B N Reddy Nagar, Nagarjuna Sagar Road","Old Nallakunta","RTC Cross Road","Champapet, Koti","Lingampally-Serilingampally, NH 2 2","Prashanth Nagar","Pragathi Nagar, Moosapet","Humayun Nagar","Nizam Colony","Panjagutta Colony","Srinivasa Colony, Secunderabad","Thumukunta","Chintal, NH 7","SV Nagar, Secunderabad","Petbasheerabad","Domalguda, Himayath Nagar, NH 7","Ayodhya Nagar, Quthbullapur","Lalaguda, Secunderabad","Dilsukh Nagar, NH 9","Shamshabad","Nadeem Colony","Badesahebguda","East Nehru Nagar","Madhura Nagar","Venkata Ramana Colony, Nagole","Old Alwal","Bongloor, Outer Ring Road","Balanagar","Whitefields","Mallikarjuna Nagar, Secunderabad","Vijaya Puri Colony","Koti, NH 9","Moosarambagh, NH 9","Hyderabad","Hastinapuram","Ram Bagh Colony","New Boiguda, Boiguda","Shaikpet","Yousufguda, NH 9","Adikmet","K P H B Phase 4","Dwarakapuri, Punjagutta, NH 9","Siddhi Vinayak Nagar, Madhapur","Tellapur, Outer Ring Road","Allwyn Colony","Mythri Nagar, Hafeezpet, NH 9","Bhagya Nagar Colony, Secunderabad","Almasguda","Secretariat Hills","Rethibowli, Mehdipatnam","Vidya Nagar","Dharmapuri Colony","Mithila Nagar-Banjara Hills","Sri Nagar Colony","Ragannaguda, Outer Ring Road","Gudimalkapur","Manigunda","Manneguda","Asif Nagar","Rodamestri Nagar","Punjagutta X Roads","Kakateeya Nagar, Secunderabad","Indis VB CITY, Bollaram railway station","Neknampur, Manikonda, Outer Ring Road","Mokila","Kakatiya Hills Madhapur","Adibatla","Balapur","Kukatpally Housing Board Colony, NH 9","Kuntloor","Anandbagh, Secunderabad, Moula Ali Road","Venkataramana Colony, Secunderabad","Vikrampuri, Secunderabad","Netaji Nagar Colony, Langar Houz","K P H B Phase 9","Saket, Secunderabad","Vinayaka Nagar","BN Reddy Nagar","Manikonda, Hyderabad"],
+    Kolkata: ["Bandel","Phool Bagan, Kankurgachi","Salt Lake City Sector 2","Dumdum Park","South Dum Dum","Thakurpukur","Malancha","Palm Avenue Kolkata, Ballygunge","Natunhat","Action Area 1, Rajarhat Newtown","Keshtopur","Tarulia, Keshtopur","Dum Dum Metro","Paschim Barisha","New Town Action Area 1","Barasat","Behala","Behala Chowrasta","Santoshpur","Garia Station, Garia","Joka","Sreebhumi","Rajarhat","Dum Dum","Kodalia, Hooghly-Chinsurah","Baguiati","Rabindra Sarobar Area, Dhakuria","Baghajatin","Project Kaikhali, Vip Road","Vip Road","Baruipur","Shyam Bazar","Birati","Bansdroni","Jadavpur University","Bhadrakali","Ballygunge","Kalikapur","Baishnabghata Patuli Township, Patuli","Salt Lake City","New Town","Pancha Sayar","Hooghly-Chinsurah","Amtala, Diamond Harbour Road","Shrachi Village, Madhyam Gram","Kasba","VIP Road Haldiram","Sarsuna","Naihati","Baksara","Chak Thakurani, Thakurpukur","Jadavpur","Salt Lake City Sector 1","Beliaghata","Magnolia Prestige, Rajarhat","Dum Dum Heights, Jessore Road","Sonarpur","Lake Town","Belghoria","Rabindra Pally, Keshtopur","Hazra, Kalighat","Ajoy Nagar","Kasba -East","New Garia, Garia","Anandapur","Boral","Bagbazar","Salt Lake City Sector 3","Avenue S, Santoshpur","Pratiraksha Nagar","Kudghat, Ashok Nagar","Sakher Bazar, Purba Barisha","Purbasan, Thakurpukur","Bidhan Pally, Bansdroni","Naktala, Garia","Tiljala Road","Sankaritola","Parnashree Lake, Behala","Garia","Dakshineswar","Mukundapur","Salt Lake City Sector 5","Entally","Kaikhali","Dash Drone, Rajarhat Newtown","Rajdanga Gardens, Kasba","South Baksara","Chandannagar, Hooghly-Chinsurah","Sukhpally, Haltu","Garia Dhalua Nabapally","Chinar Park, Rajarhat","Konnagar","New Barrakpur","Thakurpukur, Kolkata","Hindmotor","Howrah","Benia Pukur","E M Bypass","Panchanan Tola, Thakurpukur","VIP Nagar, E M Bypass","Dum Dum Cantonment","Mominpur","Halisahar Station Road, Kanchrapara","Dunlop, Dakshineswar, Belgharia Expressway","Baguihati","Kabardanga","Haltu","Botanical Garden Area","Bonhooghly","Teghoria, Baguiati","Survey Park","Kanchrapara","Ultadanga","Bagha Jatin Pally","Baranagar","Tollygunge","Purbasa","Barasat-Barrackpore Road","Bata Nagar","Hatiara Extention","Andul","Khardah","Parnasree Pally","Jyangra","Sukchar","Tagore Park, Kasba","Barrackpore","Silpara, Purba Barisha","Madhyam Gram","Lake Gardens","Thakurpukur, Kolkata","Park Circus, Ballygunge","Haridevpur, Paschim Putiary","Bhawanipur","Sodepur","Liluah","Near DumDum Metro","Sukanta Nagar, New Barrakpur","Kumarpara, Narendrapur","Narendrapur","Sahid Nagar","Bow Bazar","New Alipore","Azadgarh","Mandirtala","Dhakuria","Rabindra Sarovar Metro","Regent Estate, Bijoygarh","Kumargali","Brahmapur","Purba Barisha","Pathak Para, Behala","Hatiara","Rabindrapally, Garia","Bangur Avenue, Lake Town","Hooghly","Kalabagan, Tollygunge","Rishra","Action Area 3, Rajarhat Newtown","Anandapuri, Barrackpore","Rabindrapally Kestopur","Baishnabghata, Garia","Santoshpur - EM Bypass","Nalta","Vivek Nagar, Garfa","Kalindi","New Garia Metro, New Garia","Agarpara","Dashadron Newtown Rajarhat","Gandhi Colony, Netaji Nagar","Em Bypass South East","Kalyani","Kestopur","Bijoygarh","Dasnagar","Baishnabghata Patuli, Patuli","Ramchandrapur north","Fartabad, Garia","Belgharia","Ramkrishna Pally, Kaikhali","Sarat Ghosh Garden, Dhakuria","Purba Putiary","Santragachi","Madurdaha, Hussainpur","Picnic Garden, E M Bypass","Nayabad","Ananda Pally, Jadavpur","Airport Area","Jodhpur Park","Purba Sinthi Area","Kadam Tala","Baidyabati","Jagacha","FC Block","Satgachi, South Dum Dum","AH Block, Salt Lake","Dhakuria -South East, Dhakuria","Baughati","Garfa","Sakuntala Park, Behala","Jheel Road","Ramrajatala","Rash Behari Avenue Connector","Siriti, Tollygunge","Nimta","Michael Nagar, New Barrakpur","Belgharia Nimta","Vedic Village, Rajarhat","Dashdrone","Sangati Colony, Netaji Nagar","Sahapur, New Alipore"],
+    Mumbai: ["Shaheen Apartment, Andheri West","Santacruz West","Mira Road","Sion","Bhandup West","Bandra West","Chembur","Cuffe Parade","Mahim West","Prabhadevi","Worli","Malad East","Goregaon West","Ghatkopar West","Mira Bhayandar","Chembur East","Vile Parle East","Malad West","Powai","Andheri East","Lokhandwala Complex","Kanjurmarg West","Khar West","Chandivali","India Bulls Sky Forest, Lower Parel","Bhakti Park","Ghatkopar East","Kurla West","Dadar East","Dadar West","Vile Parle West","Oshiwara","Nirmal Lifestyle, LBS Marg","Tilak Nagar - Harbour Line","Kalina","Vile Parle","Borivali West","Mulund East","Vikhroli West","Mulund West","Dahisar East","Dharavi","Mazgaon","Borivali East","Kandivali West","Andheri West","Lower Parel","Irla","Mahim","Bhandup East","Byculla West","Santacruz East","Parel","Goregaon East","Worli Sea Face","Bandra East","Antop Hill","JVPD Scheme","Agripada","Navi Mumbai-Khargar-Panvel","Walkeshwar","Wadala","Sion East","Virar West","Malabar Hill","Yari Road","Mulund Railway Station","Seven Bungalows","Kamla Nagar","Kanjurmarg East","Datta Pada","Anushakti Nagar","Tata Nagar","Gulmohar Road","Nerul sector-3","Peddar Road","IC Colony","Peddar Road","Altamount Road","Bhayandar East","Pali Hill","Deonar","Poisar","Kandivali East","Ratan Silicon Park, Jankalyan Nagar","Naigaon East","Carter Road","Thakur Village, Kandivali East","Thakur Complex","Mira Road East","Virar","Purushottam Towers, Dadar West","Bhoiwada","Devi Pada","Manavsthal, Andheri East","Bhandup Village","Chakala","Saki Vihar Road","Pant Nagar","Charkop","Charkop Sector 6","Ketki Pada","Waterfield Road","Ghatla","Juhu Versova Link Road","Milap CHS, Seven Bungalows","Nalasopara West","Vikhroli","Jacob Circle","Dadar West","Hill Road, Bandra West","Hindu Colony","Ekta Nagar","Nahur Gaothan","JB Nagar","Sakinaka Junction","Juhu","Beverly Park","Vikhroli West","Mahavir Nagar","Dahisar West","Govandi Station Road","Grant Road","new panvel","Perry Rd","Deonar","Bhandup","Mount Mary","Opera House","Kurla","JL Tambe Nagar","Shivaji Park","Peddar Road","Union Park","Nalasopara West","Taloja Phase 2","Sion Trombay Road","Mahajan Wadi","Bhandup Village","Bhoiwada","Ketki Pada"],
+  };
+
+  // ── Feature importance data ───────────────────────────────────
+  const factors = [
+    { feature: 'Point of Contact', score: 0.275 },
+    { feature: 'Size (Sq. Ft.)',   score: 0.185 },
+    { feature: 'Total Floors',     score: 0.108 },
+    { feature: 'City',             score: 0.106 },
+    { feature: 'Bathroom',         score: 0.104 },
+    { feature: 'BHK',              score: 0.075 },
+    { feature: 'Area Locality',    score: 0.065 },
+    { feature: 'Current Floor',    score: 0.035 },
+    { feature: 'Furnishing',       score: 0.025 },
+    { feature: 'Tenant Preferred', score: 0.015 },
+  ];
+
+  // ── Locality helpers ──────────────────────────────────────────
+  function updateLocalities() {
+    const city   = document.getElementById('City').value;
+    const dl     = document.getElementById('locality-list');
+    const input  = document.getElementById('Area Locality');
+    const locs   = cityDB[city] || [];
+    dl.innerHTML = '';
+    locs.forEach(loc => {
+      const opt = document.createElement('option');
+      opt.value = loc;
+      dl.appendChild(opt);
+    });
+    input.value = locs[0] || '';
+  }
+
+  function selectCity(card) {
+    document.querySelectorAll('.city-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    document.getElementById('City').value = card.dataset.city;
+    updateLocalities();
+  }
+
+  function syncCityStrip() {
+    const city = document.getElementById('City').value;
+    document.querySelectorAll('.city-card').forEach(c => {
+      c.classList.toggle('active', c.dataset.city === city);
+    });
+    updateLocalities();
+  }
+
+  // ── INR formatter ─────────────────────────────────────────────
+  function inr(amount) {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency', currency: 'INR', maximumFractionDigits: 0
+    }).format(amount);
+  }
+
+  // ── Button state ──────────────────────────────────────────────
+  function setBusy(busy) {
+    const btn  = document.getElementById('predictBtn');
+    const text = document.getElementById('btnText');
+    const arr  = document.getElementById('btnArrow');
+    btn.disabled  = busy;
+    text.textContent = busy ? 'Thinking…'       : 'Estimate My Rent';
+    arr.textContent  = busy ? '⟳'              : '→';
+    arr.className    = busy ? 'btn-arrow spinning' : 'btn-arrow';
+  }
+
+  // ── Result states ─────────────────────────────────────────────
+  function showResult(amount) {
+    document.getElementById('idleState').style.display  = 'none';
+    document.getElementById('rentError').style.display  = 'none';
+
+    const display = document.getElementById('rentDisplay');
+    display.style.display = 'block';
+
+    // Animated amount reveal
+    const el = document.getElementById('rentAmount');
+    el.textContent = inr(amount);
+    el.classList.remove('pop');
+    void el.offsetWidth;
+    el.classList.add('pop');
+
+    // Range band ±10%
+    const low  = Math.round(amount * 0.90);
+    const high = Math.round(amount * 1.10);
+    document.getElementById('rentRange').innerHTML =
+      `<span class="range-tag">Low ${inr(low)}</span>` +
+      `<span class="range-tag highlight">Est ${inr(amount)}</span>` +
+      `<span class="range-tag">High ${inr(high)}</span>`;
+
+    document.getElementById('resultDot').classList.add('live');
+  }
+
+  function showError(msg) {
+    document.getElementById('idleState').style.display   = 'none';
+    document.getElementById('rentDisplay').style.display = 'none';
+    document.getElementById('resultDot').classList.remove('live');
+    const err = document.getElementById('rentError');
+    err.style.display = 'block';
+    err.textContent   = msg;
+  }
+
+  // ── Predict ───────────────────────────────────────────────────
+  async function predictRent() {
+    setBusy(true);
+
+    const payload = {
+      BHK:                document.getElementById('BHK').value,
+      Size:               document.getElementById('Size').value,
+      City:               document.getElementById('City').value,
+      'Area Locality':    document.getElementById('Area Locality').value,
+      'Furnishing Status':document.getElementById('Furnishing Status').value,
+      'Tenant Preferred': document.getElementById('Tenant Preferred').value,
+      Bathroom:           document.getElementById('Bathroom').value,
+      'Point of Contact': document.getElementById('Point of Contact').value,
+      CurrentFloor:       document.getElementById('CurrentFloor').value,
+      TotalFloors:        document.getElementById('TotalFloors').value,
+    };
+
+    try {
+      const res  = await fetch(`${API_BASE}/predict`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.error || data.detail) {
+        const errorMsg = data.detail || data.error || `Server error (${res.status}). Please try again.`;
+        showError(errorMsg);
+      } else {
+        showResult(data.predicted_rent);
+      }
+
+    } catch {
+      showError('Cannot reach the prediction server. Make sure the API is running on port 5000.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // ── Build factor bars ─────────────────────────────────────────
+  function buildFactorBars() {
+    const max  = factors[0].score;
+    document.getElementById('factorList').innerHTML = factors.map(d => {
+      const pct = Math.round((d.score / max) * 100);
+      return `
+        <div class="factor-item">
+          <div class="factor-name">${d.feature}</div>
+          <div class="factor-track"><div class="factor-fill" style="width:${pct}%"></div></div>
+          <div class="factor-pct">${(d.score * 100).toFixed(1)}%</div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Build Chart.js ────────────────────────────────────────────
+  function buildChart() {
+    const ctx   = document.getElementById('importanceChart').getContext('2d');
+    const names = factors.map(d => d.feature);
+    const vals  = factors.map(d => d.score);
+
+    const grad = ctx.createLinearGradient(0, 0, 500, 0);
+    grad.addColorStop(0, 'rgba(45,53,97,0.25)');
+    grad.addColorStop(1, 'rgba(45,53,97,0.9)');
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: names,
+        datasets: [{ label: 'Importance', data: vals, backgroundColor: grad, borderRadius: 5, barPercentage: 0.65 }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1612',
+            titleColor: '#c8922a',
+            bodyColor:  '#faf8f3',
+            borderColor: '#e8e0d0',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false,
+            callbacks: { label: ctx => ` Impact: ${(ctx.raw * 100).toFixed(1)}%` },
+          },
+        },
+        scales: {
+          x: {
+            grid:  { color: 'rgba(26,22,18,0.05)', drawBorder: false },
+            ticks: { color: '#8a7d6e', font: { size: 11, family: 'DM Mono, monospace' } },
+            title: { display: true, text: 'Relative impact on rent price', color: '#4a4035', font: { size: 12 } },
+          },
+          y: {
+            grid:  { display: false, drawBorder: false },
+            ticks: { color: '#1a1612', font: { size: 12, family: 'DM Sans, sans-serif', weight: '500' } },
+          },
+        },
+      },
+    });
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+  function init() {
+    updateLocalities();
+    buildFactorBars();
+    buildChart();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Data Processing
+pandas>=2.2.0
+
+# Machine Learning
+xgboost>=3.0.0
+scikit-learn>=1.5.0
+
+# Backend & Server
+fastapi>=0.110.0
+pydantic>=2.0.0
+uvicorn>=0.30.0
+
+# Essential for FastAPI on HF
+python-multipart

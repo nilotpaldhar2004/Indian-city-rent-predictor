@@ -1,0 +1,35 @@
+# --- ML Models (Crucial for HF Sync) ---
+# We ignore these to prevent "binary file" push errors.
+# Upload these manually to the Hugging Face "Files" tab.
+models/
+*.pkl
+*.joblib
+*.pth
+*.onnx
+
+# --- Python & Environments ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+build/
+dist/
+*.egg-info/
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# --- IDEs (PyCharm, VS Code) ---
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.history/
+
+# --- OS Generated ---
+.DS_Store
+Thumbs.db
