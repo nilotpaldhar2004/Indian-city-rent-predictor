@@ -1,4 +1,3 @@
-
 import os
 import logging
 import time
@@ -9,11 +8,10 @@ import sklearn
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import uvicorn
-
 
 
 logging.basicConfig(
@@ -23,9 +21,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("rent-api")
 
-MODEL_PATH = os.getenv("MODEL_PATH", "models/xgboost_rent_model.pkl")
-ENCODER_PATH = os.getenv("ENCODER_PATH", "models/label_encoders.pkl")
-PORT = int(os.getenv("PORT", 7860))
+MODEL_PATH = os.getenv("MODEL_PATH", "xgboost_rent_model.pkl")
+ENCODER_PATH = os.getenv("ENCODER_PATH", "label_encoders.pkl")
+PORT = int(os.getenv("PORT", 10000))
 
 
 FEATURES = [
@@ -79,7 +77,13 @@ async def lifespan(app: FastAPI):
     ml_models.clear()
 
 
-app = FastAPI(title="RentIQ API", version="2.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="RentIQ API",
+    version="2.0.0",
+    lifespan=lifespan,
+    docs_url="/docs",
+    openapi_url="/openapi.json"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -90,12 +94,11 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-async def serve_frontend():
-    """Serve index.html when opening the server in a browser."""
+@app.get("/", include_in_schema=False)
+async def root():
     if os.path.exists("index.html"):
         return FileResponse("index.html")
-    return {"message": "RentIQ API is live. POST to /predict."}
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health")
@@ -115,6 +118,12 @@ async def health():
             "version": "2.0.0"
         }
     )
+
+
+@app.get("/ping")
+async def ping():
+    """Keep-alive ping endpoint."""
+    return {"pong": True}
 
 
 @app.post("/predict")
@@ -137,10 +146,8 @@ async def predict(req: RentRequest):
             value = df[col].iloc[0]
 
             if value not in known:
-
                 logger.warning("Unseen value '%s' for '%s'. Defaulting to '%s'.", value, col, known[0])
                 df[col] = known[0]
-
 
             df[col] = encoders[col].transform(df[col])
 
@@ -163,6 +170,8 @@ async def predict(req: RentRequest):
     except Exception as exc:
         logger.exception("Prediction failed: %s", exc)
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(exc)}")
+
+
 if __name__ == "__main__":
     logger.info("Starting RentIQ API on port %d", PORT)
     uvicorn.run(app, host="0.0.0.0", port=PORT)
